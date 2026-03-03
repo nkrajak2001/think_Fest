@@ -1,11 +1,13 @@
-/** @format */
-
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
+import slotRoutes from './routes/slotRoutes.js';
+import staffRoutes from './routes/staffRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -27,11 +29,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/slots', slotRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Smart Campus Parking API');
 });
 
 app.listen(port, () => {
-  console.log(`app listening on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });

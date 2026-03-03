@@ -2,6 +2,7 @@ import ParkingSlot from '../models/ParkingSlot.js';
 import Pricing from '../models/Pricing.js';
 import Bill from '../models/Bill.js';
 import Booking from '../models/Booking.js';
+import User from '../models/User.js';
 
 class AdminController {
   static async createSlot(req, res) {
@@ -126,6 +127,41 @@ class AdminController {
         bookings,
         totalRevenue: revenue.totalRevenue,
         totalBills: revenue.totalBills,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async getAllUsers(req, res) {
+    try {
+      const users = await User.find().select('-passwordHash').sort({ createdAt: -1 });
+      return res.json(users);
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async updateUserRole(req, res) {
+    try {
+      const { role } = req.body;
+      const userId = req.params.id;
+
+      if (!['user', 'staff', 'admin'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role. Must be user, staff, or admin' });
+      }
+
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      user.role = role;
+      await user.save();
+
+      return res.json({
+        message: `User role updated to ${role}`,
+        user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });

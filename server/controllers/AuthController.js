@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
 class AuthController {
+
   static async register(req, res) {
     try {
       const { name, email, password, vehicleNumber } = req.body;
@@ -22,10 +23,20 @@ class AuthController {
         vehicleNumber,
       });
 
+      const token = generateToken(user);
+
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+      });
+
       return res.status(201).json({
         message: 'User registered successfully',
         user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
+
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -47,14 +58,30 @@ class AuthController {
 
       const token = generateToken(user);
 
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+      });
+
       return res.json({
         message: 'Login successful',
-        token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
+
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }
+  }
+
+  static async logout(req, res) {
+    res.cookie('token', '', {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+
+    return res.json({ message: 'Logged out successfully' });
   }
 
   static async getMe(req, res) {

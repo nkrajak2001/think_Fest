@@ -1,5 +1,6 @@
-// models/User.js
-import mongoose from "mongoose";
+/** @format */
+
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema(
   {
@@ -24,7 +25,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "staff", "admin"],
+      enum: ['user', 'staff', 'admin'],
       required: true,
     },
 
@@ -39,7 +40,7 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model('User', userSchema);

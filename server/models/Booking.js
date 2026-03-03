@@ -1,18 +1,19 @@
-// models/Booking.js
-import mongoose from "mongoose";
+/** @format */
+
+import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
 
     slotId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "ParkingSlot",
+      ref: 'ParkingSlot',
       required: true,
     },
 
@@ -24,8 +25,8 @@ const bookingSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["pending", "active", "completed", "cancelled"],
-      default: "pending",
+      enum: ['pending', 'active', 'completed', 'cancelled'],
+      default: 'pending',
     },
 
     bookingTime: {
@@ -43,14 +44,14 @@ const bookingSchema = new mongoose.Schema(
 
     billId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Bill",
+      ref: 'Bill',
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Auto set expiry = bookingTime + 15 min
-bookingSchema.pre("save", function (next) {
+bookingSchema.pre('save', function (next) {
   if (!this.expiresAt) {
     this.expiresAt = new Date(this.bookingTime.getTime() + 15 * 60000);
   }
@@ -61,9 +62,9 @@ bookingSchema.index(
   {
     unique: true,
     partialFilterExpression: {
-      status: { $in: ["pending", "active"] }
-    }
-  }
+      status: { $in: ['pending', 'active'] },
+    },
+  },
 );
 
-export default mongoose.model("Booking", bookingSchema);
+export default mongoose.model('Booking', bookingSchema);

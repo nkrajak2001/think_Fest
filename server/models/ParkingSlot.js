@@ -1,5 +1,6 @@
-// models/ParkingSlot.js
-import mongoose from "mongoose";
+/** @format */
+
+import mongoose from 'mongoose';
 
 const parkingSlotSchema = new mongoose.Schema(
   {
@@ -12,14 +13,14 @@ const parkingSlotSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["regular", "ev", "handicap", "vip"],
+      enum: ['regular', 'ev', 'handicap', 'vip'],
       required: true,
     },
 
     status: {
       type: String,
-      enum: ["available", "booked", "occupied", "maintenance"],
-      default: "available",
+      enum: ['available', 'booked', 'occupied', 'maintenance'],
+      default: 'available',
     },
 
     floor: {
@@ -34,11 +35,11 @@ const parkingSlotSchema = new mongoose.Schema(
 
     currentBookingId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
+      ref: 'Booking',
       default: null,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model("ParkingSlot", parkingSlotSchema);
+export default mongoose.model('ParkingSlot', parkingSlotSchema);

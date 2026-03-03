@@ -1,11 +1,12 @@
-// models/Pricing.js
-import mongoose from "mongoose";
+/** @format */
+
+import mongoose from 'mongoose';
 
 const pricingSchema = new mongoose.Schema(
   {
     slotType: {
       type: String,
-      enum: ["regular", "ev", "handicap", "vip"],
+      enum: ['regular', 'ev', 'handicap', 'vip'],
       required: true,
     },
 
@@ -21,7 +22,7 @@ const pricingSchema = new mongoose.Schema(
 
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
 
     isActive: {
@@ -29,7 +30,7 @@ const pricingSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model("Pricing", pricingSchema);
+export default mongoose.model('Pricing', pricingSchema);

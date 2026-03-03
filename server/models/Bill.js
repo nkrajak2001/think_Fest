@@ -1,18 +1,19 @@
-// models/Bill.js
-import mongoose from "mongoose";
+/** @format */
+
+import mongoose from 'mongoose';
 
 const billSchema = new mongoose.Schema(
   {
     bookingId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
+      ref: 'Booking',
       required: true,
       unique: true,
     },
 
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
@@ -39,7 +40,7 @@ const billSchema = new mongoose.Schema(
 
     paidAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.model("Bill", billSchema);
+export default mongoose.model('Bill', billSchema);

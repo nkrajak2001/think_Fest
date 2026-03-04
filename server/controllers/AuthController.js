@@ -29,11 +29,12 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return res.status(201).json({
         message: 'User registered successfully',
+        token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
 
@@ -62,11 +63,12 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
       return res.json({
         message: 'Login successful',
+        token,
         user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
 
@@ -90,6 +92,45 @@ class AuthController {
       return res.json(user);
     } catch (error) {
       return res.status(500).json({ message: 'Server Error' });
+    }
+  }
+
+  static async updateProfile(req, res) {
+    try {
+      const { name, vehicleNumber } = req.body;
+
+      const updates = {};
+      if (name) updates.name = name.trim();
+      if (vehicleNumber) updates.vehicleNumber = vehicleNumber.trim().toUpperCase();
+
+      const user = await User.findByIdAndUpdate(
+        req.user.id,
+        updates,
+        { new: true, runValidators: true }
+      ).select('-passwordHash');
+
+      return res.json({ message: 'Profile updated', user });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async changePassword(req, res) {
+    try {
+      const { oldPassword, newPassword } = req.body;
+
+      const user = await User.findById(req.user.id);
+      const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Old password is incorrect' });
+      }
+
+      user.passwordHash = await bcrypt.hash(newPassword, 12);
+      await user.save();
+
+      return res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
     }
   }
 }

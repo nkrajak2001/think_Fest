@@ -8,6 +8,7 @@ import bookingRoutes from './routes/bookingRoutes.js';
 import slotRoutes from './routes/slotRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import { cleanupExpiredBookings } from './utils/bookingCleanup.js';
 
 dotenv.config();
 connectDB();
@@ -37,6 +38,10 @@ app.use('/api/admin', adminRoutes);
 app.get('/', (req, res) => {
   res.send('Smart Campus Parking API');
 });
+
+// Run cleanup on startup and every 2 minutes
+cleanupExpiredBookings();
+setInterval(cleanupExpiredBookings, 2 * 60 * 1000);
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

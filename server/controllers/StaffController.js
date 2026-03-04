@@ -5,6 +5,36 @@ import Pricing from '../models/Pricing.js';
 import User from '../models/User.js';
 
 class StaffController {
+
+  // NEW: Search bookings by vehicleNumber or slotId
+  static async findBookings(req, res) {
+    try {
+      const { vehicleNumber, slotId, status } = req.query;
+
+      const filter = {};
+      if (vehicleNumber) filter.vehicleNumber = vehicleNumber.toUpperCase();
+      if (status) filter.status = status;
+
+      // If slotId given, find via slot
+      if (slotId) {
+        const slot = await ParkingSlot.findOne({ slotNumber: slotId.toUpperCase() });
+        if (!slot) return res.status(404).json({ message: 'Slot not found' });
+        filter.slotId = slot._id;
+      }
+
+      const bookings = await Booking.find(filter)
+        .populate('userId', 'name email vehicleNumber')
+        .populate('slotId', 'slotNumber type floor section')
+        .populate('billId')
+        .sort({ createdAt: -1 })
+        .limit(20);
+
+      return res.json(bookings);
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
   static async checkIn(req, res) {
     try {
       const bookingId = req.params.id;

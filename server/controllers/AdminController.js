@@ -9,7 +9,7 @@ class AdminController {
     try {
       const { slotNumber, type, floor, section } = req.body;
 
-      const existing = await ParkingSlot.findOne({ slotNumber });
+      const existing = await ParkingSlot.findOne({ slotNumber: slotNumber.toUpperCase() });
       if (existing) {
         return res.status(400).json({ message: 'Slot number already exists' });
       }
@@ -66,6 +66,37 @@ class AdminController {
     }
   }
 
+  // NEW: Put slot into maintenance mode
+  static async setMaintenance(req, res) {
+    try {
+      const slot = await ParkingSlot.findById(req.params.id);
+      if (!slot) return res.status(404).json({ message: 'Slot not found' });
+      if (slot.status !== 'available') {
+        return res.status(400).json({ message: 'Only available slots can be set to maintenance' });
+      }
+      slot.status = 'maintenance';
+      await slot.save();
+      return res.json({ message: 'Slot set to maintenance', slot });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async activateSlot(req, res) {
+    try {
+      const slot = await ParkingSlot.findById(req.params.id);
+      if (!slot) return res.status(404).json({ message: 'Slot not found' });
+      if (slot.status !== 'maintenance') {
+        return res.status(400).json({ message: 'Slot is not in maintenance mode' });
+      }
+      slot.status = 'available';
+      await slot.save();
+      return res.json({ message: 'Slot activated', slot });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
   static async setPricing(req, res) {
     try {
       const { slotType, hourlyRate, minCharge } = req.body;
@@ -93,12 +124,34 @@ class AdminController {
 
   static async getRevenue(req, res) {
     try {
-      const result = await Bill.aggregate([
-        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' }, totalBills: { $sum: 1 } } },
-      ]);
+      const matchStage = {};
+      if (req.query.from || req.query.to) {
+        matchStage.createdAt = {};
+        if (req.query.from) matchStage.createdAt.$gte = new Date(req.query.from);
+        if (req.query.to) matchStage.createdAt.$lte = new Date(req.query.to);
+      }
 
-      const revenue = result.length > 0 ? result[0] : { totalRevenue: 0, totalBills: 0 };
-      return res.json({ totalRevenue: revenue.totalRevenue, totalBills: revenue.totalBills });
+      const pipeline = [];
+      if (Object.keys(matchStage).length > 0) pipeline.push({ $match: matchStage });
+      pipeline.push({
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$totalAmount' },
+          totalCollected: { $sum: { $cond: [{ $ne: ['$paidAt', null] }, '$totalAmount', 0] } },
+          totalBills: { $sum: 1 },
+          paidBills: { $sum: { $cond: [{ $ne: ['$paidAt', null] }, 1, 0] } },
+        }
+      });
+
+      const result = await Bill.aggregate(pipeline);
+      const revenue = result.length > 0 ? result[0] : { totalRevenue: 0, totalCollected: 0, totalBills: 0, paidBills: 0 };
+
+      return res.json({
+        totalRevenue: revenue.totalRevenue,
+        totalCollected: revenue.totalCollected,
+        totalBills: revenue.totalBills,
+        paidBills: revenue.paidBills,
+      });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -163,6 +216,21 @@ class AdminController {
         message: `User role updated to ${role}`,
         user: { id: user._id, name: user.name, email: user.email, role: user.role },
       });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async confirmPayment(req, res) {
+    try {
+      const bill = await Bill.findById(req.params.id);
+      if (!bill) return res.status(404).json({ message: 'Bill not found' });
+      if (bill.paidAt) return res.status(400).json({ message: 'Bill already marked as paid' });
+
+      bill.paidAt = new Date();
+      await bill.save();
+
+      return res.json({ message: 'Payment confirmed', bill });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }

@@ -1,6 +1,7 @@
 import Booking from '../models/Booking.js';
 import ParkingSlot from '../models/ParkingSlot.js';
 import User from '../models/User.js';
+import Bill from '../models/Bill.js';
 
 class BookingController {
   static async bookSlot(req, res) {
@@ -69,6 +70,43 @@ class BookingController {
       await User.findByIdAndUpdate(userId, { hasActiveBooking: false });
 
       return res.json({ message: 'Booking cancelled successfully' });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  // NEW: Mark a bill as paid
+  static async payBill(req, res) {
+    try {
+      const userId = req.user.id;
+      const bookingId = req.params.id;
+
+      const booking = await Booking.findById(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      if (booking.userId.toString() !== userId) {
+        return res.status(403).json({ message: 'Not authorized' });
+      }
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ message: 'Booking is not completed yet' });
+      }
+      if (!booking.billId) {
+        return res.status(404).json({ message: 'No bill found for this booking' });
+      }
+
+      const bill = await Bill.findById(booking.billId);
+      if (!bill) {
+        return res.status(404).json({ message: 'Bill not found' });
+      }
+      if (bill.paidAt) {
+        return res.status(400).json({ message: 'Bill already paid' });
+      }
+
+      bill.paidAt = new Date();
+      await bill.save();
+
+      return res.json({ message: 'Bill paid successfully', bill });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }

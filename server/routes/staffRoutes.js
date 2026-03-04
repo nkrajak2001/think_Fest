@@ -5,6 +5,8 @@ import RBAC from '../middleware/rbacMiddleware.js';
 
 const router = express.Router();
 
+router.get('/bookings', authMiddleware, RBAC.authorize('staff', 'admin'), StaffController.findBookings);
+
 router.patch('/:id/checkin', authMiddleware, RBAC.authorize('staff', 'admin'), StaffController.checkIn);
 router.patch('/:id/checkout', authMiddleware, RBAC.authorize('staff', 'admin'), StaffController.checkOut);
 

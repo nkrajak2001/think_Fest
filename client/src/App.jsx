@@ -3,8 +3,14 @@ import { Routes, Route } from "react-router-dom";
 import Register from "./Pages/auth/Register";
 import Login from "./Pages/auth/Login";
 import Dashboard from "./Pages/user/Dashboard";
+import AdminDashboard from "./Pages/admin/AdminDashboard";
+import ManageSlot from "./Pages/admin/ManageSlot";
+import ManageUser from "./Pages/admin/ManageUser";
+import ManagePricing from "./Pages/admin/ManagePricing";
 import AuthProvider from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import AdminRoute from "./Components/AdminRoute";
+import AdminLayout from "./Components/AdminLayout";
 
 function App() {
   return (
@@ -21,6 +27,19 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/slots" element={<ManageSlot />} />
+          <Route path="/admin/users" element={<ManageUser />} />
+          <Route path="/admin/pricing" element={<ManagePricing />} />
+        </Route>
       </Routes>
     </AuthProvider>
   );

@@ -39,7 +39,11 @@ const Login = () => {
       );
 
       setUser(res.data.user);
-      navigate('/dashboard');
+
+      const userRole = res.data.user.role;
+      if (userRole === 'admin') navigate('/admin');
+      else if (userRole === 'staff') navigate('/staff');
+      else navigate('/dashboard');
     } catch (error) {
       alert(error.response?.data?.message || 'Login failed');
     } finally {

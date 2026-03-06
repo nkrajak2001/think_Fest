@@ -51,11 +51,10 @@ const bookingSchema = new mongoose.Schema(
 );
 
 // Auto set expiry = bookingTime + 15 min
-bookingSchema.pre('save', function (next) {
+bookingSchema.pre('save', function () {
   if (!this.expiresAt) {
     this.expiresAt = new Date(this.bookingTime.getTime() + 15 * 60000);
   }
-  next();
 });
 bookingSchema.index(
   { slotId: 1, status: 1 },

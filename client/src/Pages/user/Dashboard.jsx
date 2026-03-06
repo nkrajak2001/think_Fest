@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Sidebar from "../../Components/dashboard/Sidebar";
-import Overview from "../../Components/dashboard/Overview";
-import Slots from "../../Components/dashboard/Slots";
-import Bookings from "../../Components/dashboard/Bookings";
-import Billing from "../../Components/dashboard/Billing";
+import Sidebar from "./dashboard/Sidebar";
+import Overview from "./dashboard/Overview";
+import Slots from "./dashboard/Slots";
+import Bookings from "./dashboard/Bookings";
+import Billing from "./dashboard/Billing";
 
 export default function Dashboard() {
   const [page, setPage] = useState("overview");

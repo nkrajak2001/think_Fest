@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import API from "../../../services/api";
 import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export default function Bookings() {
 
@@ -11,12 +12,15 @@ export default function Bookings() {
   }, []);
 
   const loadBookings = async () => {
-    const res = await API.get("/bookings/my");
-    setBookings(res.data);
+    try {
+      const res = await API.get("/bookings/my");
+      setBookings(res.data);
+    } catch (err) {
+      toast.error("Failed to load bookings");
+    }
   };
 
   const cancelBooking = async (id) => {
-
     try {
 
       await API.patch(`/bookings/${id}/cancel`);
@@ -27,13 +31,17 @@ export default function Bookings() {
 
     } catch (err) {
 
-      toast.error(err.response.data.message);
+      toast.error(err.response?.data?.message || "Cancel failed");
 
     }
   };
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6"
+    >
 
       <h1 className="text-2xl font-bold mb-6">
         My Bookings
@@ -43,7 +51,7 @@ export default function Bookings() {
 
         <thead className="text-zinc-400 text-sm">
           <tr>
-            <th>Slot</th>
+            <th className="pb-3">Slot</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -53,13 +61,20 @@ export default function Bookings() {
 
           {bookings.map((b) => (
 
-            <tr key={b._id} className="border-b border-zinc-800">
+            <motion.tr
+              key={b._id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="border-b border-zinc-800"
+            >
 
-              <td className="py-3">
-                {b.slotId.slotNumber}
+              <td className="py-3 font-semibold">
+                {b.slotId?.slotNumber}
               </td>
 
-              <td>{b.status}</td>
+              <td className="capitalize">
+                {b.status}
+              </td>
 
               <td>
 
@@ -67,7 +82,7 @@ export default function Bookings() {
 
                   <button
                     onClick={() => cancelBooking(b._id)}
-                    className="text-red-400"
+                    className="text-red-400 hover:text-red-300"
                   >
                     Cancel
                   </button>
@@ -76,7 +91,7 @@ export default function Bookings() {
 
               </td>
 
-            </tr>
+            </motion.tr>
 
           ))}
 
@@ -84,6 +99,6 @@ export default function Bookings() {
 
       </table>
 
-    </div>
+    </motion.div>
   );
 }

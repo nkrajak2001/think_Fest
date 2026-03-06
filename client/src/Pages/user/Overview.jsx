@@ -1,19 +1,62 @@
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+
+const API = "http://localhost:5000/api";
 
 export default function Overview() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState([
+    { label: "Total Bookings", value: "—" },
+    { label: "Hours Parked", value: "—" },
+    { label: "Total Spent", value: "—" },
+    { label: "Cancelled", value: "—" },
+  ]);
 
-  const stats = [
-    { label: "Total Bookings", value: 14 },
-    { label: "Hours Parked", value: 38 },
-    { label: "Total Spent", value: "₹1520" },
-    { label: "Cancelled", value: 3 },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get(`${API}/bookings/my`, { withCredentials: true });
+        const bookings = res.data;
+
+        const totalBookings = bookings.length;
+        const cancelled = bookings.filter((b) => b.status === "cancelled").length;
+        const hoursParked = bookings.reduce(
+          (sum, b) => sum + (b.billId?.billableHours || 0),
+          0
+        );
+        const totalSpent = bookings.reduce(
+          (sum, b) => sum + (b.billId?.totalAmount || 0),
+          0
+        );
+
+        setStats([
+          { label: "Total Bookings", value: totalBookings },
+          { label: "Hours Parked", value: hoursParked },
+          { label: "Total Spent", value: `₹${totalSpent}` },
+          { label: "Cancelled", value: cancelled },
+        ]);
+      } catch (err) {
+        console.error("Failed to fetch booking stats:", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  };
 
   return (
     <div>
 
       <h1 className="text-2xl font-bold mb-8">
-        Good Morning 👋
+        {getGreeting()}{user?.name ? `, ${user.name}` : ""} 👋
       </h1>
 
       <div className="grid grid-cols-4 gap-6">

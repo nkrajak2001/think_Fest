@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
+import { AuthContext } from "../../context/AuthContext";
 
 const API = "http://localhost:5000/api";
 
 export default function Overview() {
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext);
   const [stats, setStats] = useState([
     { label: "Total Bookings", value: "—" },
     { label: "Hours Parked", value: "—" },

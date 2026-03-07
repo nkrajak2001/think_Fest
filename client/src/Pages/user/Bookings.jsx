@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 
-// Lazily loads the Razorpay checkout script
 const loadRazorpayScript = () =>
   new Promise((resolve) => {
     if (document.getElementById("razorpay-script")) return resolve(true);
@@ -179,7 +178,6 @@ export default function Bookings() {
                   </button>
                 )}
 
-                {/* Pay for completed + unpaid */}
                 {b.status === "completed" && b.billId && !b.billId.paidAt && (
                   <button
                     onClick={() => handlePay(b)}
@@ -197,7 +195,6 @@ export default function Bookings() {
                   </button>
                 )}
 
-                {/* QR Code toggle for pending/active */}
                 {(b.status === "pending" || b.status === "active") && (
                   <button
                     onClick={() => setQrBookingId(qrBookingId === b._id ? null : b._id)}

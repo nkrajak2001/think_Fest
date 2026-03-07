@@ -8,6 +8,7 @@ import bookingRoutes from './routes/bookingRoutes.js';
 import slotRoutes from './routes/slotRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import { cleanupExpiredBookings } from './utils/bookingCleanup.js';
 
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Smart Campus Parking API');

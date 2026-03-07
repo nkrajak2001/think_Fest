@@ -4,9 +4,22 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 
+// Lazily loads the Razorpay checkout script
+const loadRazorpayScript = () =>
+  new Promise((resolve) => {
+    if (document.getElementById("razorpay-script")) return resolve(true);
+    const script = document.createElement("script");
+    script.id = "razorpay-script";
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
 export default function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [qrBookingId, setQrBookingId] = useState(null);
+  const [payLoading, setPayLoading] = useState(null);
 
   useEffect(() => {
     loadBookings();
@@ -31,13 +44,57 @@ export default function Bookings() {
     }
   };
 
-  const payBill = async (id) => {
+  const handlePay = async (booking) => {
+    setPayLoading(booking._id);
     try {
-      await API.patch(`/bookings/${id}/pay`);
-      toast.success("Payment successful!");
-      loadBookings();
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Razorpay SDK failed to load. Check your internet connection.");
+        return;
+      }
+
+      // 1. Create order on server
+      const { data } = await API.post("/payment/create-order", {
+        bookingId: booking._id,
+      });
+
+      // 2. Open Razorpay checkout
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "SmartPark Campus",
+        description: `Parking Bill — Slot ${booking.slotId?.slotNumber}`,
+        order_id: data.orderId,
+        theme: { color: "#22d3ee" }, // cyan-400
+        handler: async (response) => {
+          try {
+            // 3. Verify payment on server
+            await API.post("/payment/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            });
+            toast.success("Payment successful! 🎉");
+            loadBookings();
+          } catch (err) {
+            toast.error("Payment verification failed. Contact support.");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.info("Payment cancelled");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Payment failed");
+      toast.error(err.response?.data?.message || "Payment failed to initiate");
+    } finally {
+      setPayLoading(null);
     }
   };
 
@@ -125,10 +182,18 @@ export default function Bookings() {
                 {/* Pay for completed + unpaid */}
                 {b.status === "completed" && b.billId && !b.billId.paidAt && (
                   <button
-                    onClick={() => payBill(b._id)}
-                    className="bg-green-500/10 text-green-400 hover:bg-green-500/20 px-3 py-1 rounded-lg text-xs font-medium transition"
+                    onClick={() => handlePay(b)}
+                    disabled={payLoading === b._id}
+                    className="bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 px-3 py-1 rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                   >
-                    Pay ₹{b.billId.totalAmount}
+                    {payLoading === b._id ? (
+                      <>
+                        <span className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" />
+                        Opening...
+                      </>
+                    ) : (
+                      `Pay ₹${b.billId.totalAmount}`
+                    )}
                   </button>
                 )}
 

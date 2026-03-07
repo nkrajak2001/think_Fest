@@ -26,6 +26,7 @@ const StaffBilling = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [confirmLoading, setConfirmLoading] = useState(null);
 
   const fetchBills = async (paid = '', pageNum = 1) => {
     setLoading(true);
@@ -52,6 +53,22 @@ const StaffBilling = () => {
   useEffect(() => {
     fetchBills(activeTab, 1);
   }, [activeTab]);
+
+  const confirmPayment = async (billId) => {
+    setConfirmLoading(billId);
+    try {
+      await axios.patch(
+        `${API}/admin/bills/${billId}/confirm-payment`,
+        {},
+        { withCredentials: true }
+      );
+      await fetchBills(activeTab, page);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to confirm payment');
+    } finally {
+      setConfirmLoading(null);
+    }
+  };
 
   return (
     <div>
@@ -147,9 +164,22 @@ const StaffBilling = () => {
                             <CheckCircle size={12} /> Paid
                           </span>
                         ) : (
-                          <span className="text-yellow-400 text-xs font-medium bg-yellow-400/10 px-2 py-1 rounded-md w-fit">
-                            Unpaid
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-yellow-400 text-xs font-medium bg-yellow-400/10 px-2 py-1 rounded-md w-fit">
+                              Unpaid
+                            </span>
+                            <button
+                              onClick={() => confirmPayment(bill._id)}
+                              disabled={confirmLoading === bill._id}
+                              className="text-xs bg-green-500/10 text-green-400 hover:bg-green-500/20 border border-green-500/20 px-2 py-1 rounded-md transition disabled:opacity-50 flex items-center gap-1 w-fit"
+                            >
+                              {confirmLoading === bill._id ? (
+                                <><span className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" /> Confirming...</>
+                              ) : (
+                                <><CheckCircle size={10} /> Confirm Paid</>
+                              )}
+                            </button>
+                          </div>
                         )}
                       </td>
                       <td className="py-3 px-2 text-gray-500 text-xs">

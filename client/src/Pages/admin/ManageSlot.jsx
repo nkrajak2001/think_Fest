@@ -11,7 +11,7 @@ import {
   Search,
 } from 'lucide-react';
 
-const API = 'http://localhost:5000/api/admin';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const statusColors = {
   available: 'bg-green-400/10 text-green-400',

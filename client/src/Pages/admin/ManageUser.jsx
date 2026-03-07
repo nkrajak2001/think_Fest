@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { Shield, Briefcase, User } from 'lucide-react';
 
-const API = 'http://localhost:5000/api/admin';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const roleIcons = {
   admin: Shield,

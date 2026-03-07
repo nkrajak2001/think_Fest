@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { IndianRupee, Zap, Accessibility, Crown, Car } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/admin`;
 
 const typeConfig = {
   regular: { icon: Car, color: 'from-zinc-700 to-zinc-600', accent: 'text-gray-300', border: 'border-zinc-700' },

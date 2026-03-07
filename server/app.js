@@ -9,8 +9,8 @@ import slotRoutes from './routes/slotRoutes.js';
 import staffRoutes from './routes/staffRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
 import { cleanupExpiredBookings } from './utils/bookingCleanup.js';
-
 dotenv.config();
 connectDB();
 
@@ -27,7 +27,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -48,12 +47,12 @@ app.use('/api/slots', slotRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.send('Smart Campus Parking API');
 });
 
-// Run cleanup on startup and every 2 minutes
 cleanupExpiredBookings();
 setInterval(cleanupExpiredBookings, 2 * 60 * 1000);
 

@@ -16,7 +16,7 @@ const AuthProvider = ({ children }) => {
         withCredentials: true,
       });
 
-      setUser(res.data);
+      setUser(res.data || null);
     } catch (error) {
       setUser(null);
     } finally {

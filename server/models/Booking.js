@@ -39,7 +39,6 @@ const bookingSchema = new mongoose.Schema(
 
     expiresAt: {
       type: Date,
-      index: { expires: 0 }, // TTL
     },
 
     billId: {

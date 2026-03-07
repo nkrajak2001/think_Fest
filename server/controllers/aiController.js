@@ -9,7 +9,6 @@ dotenv.config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy_key');
 
-// General Chat for Users
 export const generalChat = async (req, res) => {
   try {
     const { prompt, history } = req.body;
@@ -46,7 +45,6 @@ General System Info:
   }
 };
 
-// Admin Chat with Data Context
 export const adminChat = async (req, res) => {
   try {
     const { prompt, history } = req.body;
@@ -55,7 +53,6 @@ export const adminChat = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Prompt is required' });
     }
 
-    // Gather Live Database Context for Admin
     const totalSlots = await ParkingSlot.countDocuments();
     const availableSlots = await ParkingSlot.countDocuments({ status: 'available' });
     const bookedSlots = await ParkingSlot.countDocuments({ status: 'booked' });
@@ -63,8 +60,6 @@ export const adminChat = async (req, res) => {
     const totalUsers = await User.countDocuments();
     const activeBookings = await Booking.countDocuments({ status: { $in: ['pending', 'active'] } });
     
-    // Revenue calculations (assuming Bill model has an 'amount' or 'totalAmount')
-    // We'll just provide total Bills as a metric for simplicity, or sum amounts if possible.
     const totalBills = await Bill.countDocuments();
     const completedBookings = await Booking.countDocuments({ status: 'completed' });
 

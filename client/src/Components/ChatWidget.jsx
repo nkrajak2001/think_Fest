@@ -31,7 +31,6 @@ const ChatWidget = () => {
     const userMessage = input.trim();
     setInput("");
     
-    // Add user message to UI
     const newMessages = [
       ...messages,
       { role: "user", parts: [{ text: userMessage }] }
@@ -128,7 +127,6 @@ const ChatWidget = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
             <div className="p-3 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800">
               <form
                 onSubmit={handleSend}
@@ -154,7 +152,6 @@ const ChatWidget = () => {
         )}
       </AnimatePresence>
 
-      {/* Toggle Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}

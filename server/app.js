@@ -21,6 +21,7 @@ const allowedOrigins = [
   (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').replace(/\/+$/, ''),
   'http://localhost:5173',
   'http://localhost:5174',
+  'https://think-fest-1.onrender.com',
 ];
 
 app.use(

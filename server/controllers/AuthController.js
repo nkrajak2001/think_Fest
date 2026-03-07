@@ -25,10 +25,12 @@ class AuthController {
 
       const token = generateToken(user);
 
+      const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
       res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -59,10 +61,12 @@ class AuthController {
 
       const token = generateToken(user);
 
+      const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
       res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
@@ -78,10 +82,12 @@ class AuthController {
   }
 
   static async logout(req, res) {
+    const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
     res.cookie('token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       expires: new Date(0),
     });
 

@@ -8,6 +8,7 @@ import AdminDashboard from "./Pages/admin/AdminDashboard";
 import ManageSlot from "./Pages/admin/ManageSlot";
 import ManageUser from "./Pages/admin/ManageUser";
 import ManagePricing from "./Pages/admin/ManagePricing";
+import AdminAIAssistant from "./Pages/admin/AdminAIAssistant";
 import StaffDashboard from "./Pages/staff/StaffDashboard";
 import VerifyEntry from "./Pages/staff/verifyEntry";
 import StaffBookings from "./Pages/staff/StaffBookings";
@@ -19,10 +20,12 @@ import AdminRoute from "./Components/AdminRoute";
 import AdminLayout from "./Components/AdminLayout";
 import StaffRoute from "./Components/StaffRoute";
 import StaffLayout from "./Components/StaffLayout";
+import ChatWidget from "./Components/ChatWidget";
 
 function App() {
   return (
     <AuthProvider>
+      <ChatWidget />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<Register />} />
@@ -48,6 +51,7 @@ function App() {
           <Route path="/admin/slots" element={<ManageSlot />} />
           <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/pricing" element={<ManagePricing />} />
+          <Route path="/admin/ai" element={<AdminAIAssistant />} />
         </Route>
 
         <Route

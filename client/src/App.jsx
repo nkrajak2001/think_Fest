@@ -9,7 +9,7 @@ import ManageSlot from "./Pages/admin/ManageSlot";
 import ManageUser from "./Pages/admin/ManageUser";
 import ManagePricing from "./Pages/admin/ManagePricing";
 import StaffDashboard from "./Pages/staff/StaffDashboard";
-import VerifyEntry from "./Pages/staff/VerifyEntry";
+import VerifyEntry from "./Pages/staff/verifyEntry";
 import StaffBookings from "./Pages/staff/StaffBookings";
 import AuthProvider from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";

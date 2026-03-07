@@ -11,6 +11,8 @@ import ManagePricing from "./Pages/admin/ManagePricing";
 import StaffDashboard from "./Pages/staff/StaffDashboard";
 import VerifyEntry from "./Pages/staff/verifyEntry";
 import StaffBookings from "./Pages/staff/StaffBookings";
+import StaffBilling from "./Pages/staff/StaffBilling";
+import StaffSlots from "./Pages/staff/StaffSlots";
 import AuthProvider from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminRoute from "./Components/AdminRoute";
@@ -58,6 +60,8 @@ function App() {
           <Route path="/staff" element={<StaffDashboard />} />
           <Route path="/staff/verify" element={<VerifyEntry />} />
           <Route path="/staff/bookings" element={<StaffBookings />} />
+          <Route path="/staff/billing" element={<StaffBilling />} />
+          <Route path="/staff/slots" element={<StaffSlots />} />
         </Route>
       </Routes>
     </AuthProvider>

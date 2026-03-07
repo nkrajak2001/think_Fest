@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import User from './models/User.js';
 import ParkingSlot from './models/ParkingSlot.js';
+import Pricing from './models/Pricing.js';
 
 dotenv.config();
 
@@ -72,6 +73,20 @@ const seedDB = async () => {
     console.log('   - 5 Handicap (G-001 to G-005)');
     console.log('   - 5 VIP (G-006 to G-010)');
     console.log('   - 5 EV (1-001 to 1-005)');
+
+    // 3. SEED PRICING
+    const pricingCount = await Pricing.countDocuments();
+    if (pricingCount === 0) {
+      await Pricing.insertMany([
+        { slotType: 'regular', hourlyRate: 5, minCharge: 1, isActive: true },
+        { slotType: 'ev', hourlyRate: 8, minCharge: 1, isActive: true },
+        { slotType: 'handicap', hourlyRate: 4, minCharge: 1, isActive: true },
+        { slotType: 'vip', hourlyRate: 12, minCharge: 1, isActive: true },
+      ]);
+      console.log('✅ Default pricing seeded (Regular ₹5, EV ₹8, Handicap ₹4, VIP ₹12)');
+    } else {
+      console.log('✅ Pricing already exists.');
+    }
 
     process.exit(0);
   } catch (error) {

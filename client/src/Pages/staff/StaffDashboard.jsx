@@ -56,10 +56,11 @@ const StaffDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [pendingRes, activeRes, slotsRes] = await Promise.all([
+      const [pendingRes, activeRes, slotsRes, completedRes] = await Promise.all([
         axios.get(`${API}/staff/bookings?status=pending`, { withCredentials: true }),
         axios.get(`${API}/staff/bookings?status=active`, { withCredentials: true }),
         axios.get(`${API}/slots`, { withCredentials: true }),
+        axios.get(`${API}/staff/completed-today`, { withCredentials: true }),
       ]);
 
       setPendingBookings(pendingRes.data);
@@ -70,7 +71,7 @@ const StaffDashboard = () => {
       setStats({
         pending: pendingRes.data.length,
         active: activeRes.data.length,
-        completedToday: 0,
+        completedToday: completedRes.data.count || 0,
         totalSlots,
       });
     } catch (err) {

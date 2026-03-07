@@ -82,7 +82,8 @@ class StaffController {
         return res.status(400).json({ message: 'Pricing not configured for this slot type' });
       }
 
-      const billableHours = Math.max(1, Math.ceil(durationMinutes / 60));
+      const minHours = pricing.minCharge || 1;
+      const billableHours = Math.max(minHours, Math.ceil(durationMinutes / 60));
       const totalAmount = billableHours * pricing.hourlyRate;
 
       const bill = await Bill.create({
@@ -107,6 +108,48 @@ class StaffController {
       await User.findByIdAndUpdate(booking.userId, { hasActiveBooking: false });
 
       return res.json({ message: 'Check-out successful', bill });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async getCompletedToday(req, res) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const count = await Booking.countDocuments({
+        status: 'completed',
+        checkOutTime: { $gte: today },
+      });
+
+      return res.json({ count });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async getAllBills(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 20;
+      const skip = (page - 1) * limit;
+
+      const filter = {};
+      if (req.query.paid === 'true') filter.paidAt = { $ne: null };
+      if (req.query.paid === 'false') filter.paidAt = null;
+
+      const [bills, total] = await Promise.all([
+        Bill.find(filter)
+          .populate('bookingId', 'vehicleNumber slotId checkInTime checkOutTime')
+          .populate('userId', 'name email')
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        Bill.countDocuments(filter),
+      ]);
+
+      return res.json({ bills, total, page, pages: Math.ceil(total / limit) });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }

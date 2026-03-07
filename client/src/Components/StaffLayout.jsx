@@ -7,12 +7,16 @@ import {
     ScanLine,
     ClipboardList,
     LogOut,
+    IndianRupee,
+    ParkingSquare,
 } from 'lucide-react';
 
 const links = [
     { to: '/staff', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/staff/verify', label: 'Verify Entry', icon: ScanLine },
     { to: '/staff/bookings', label: 'All Bookings', icon: ClipboardList },
+    { to: '/staff/billing', label: 'Billing', icon: IndianRupee },
+    { to: '/staff/slots', label: 'Slot Management', icon: ParkingSquare },
 ];
 
 const StaffLayout = () => {

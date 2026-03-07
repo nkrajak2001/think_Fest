@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { Html5Qrcode } from 'html5-qrcode';
 import {
     Search,
     User,
@@ -10,6 +11,8 @@ import {
     IndianRupee,
     Clock,
     AlertCircle,
+    Camera,
+    CameraOff,
 } from 'lucide-react';
 
 const API = 'http://localhost:5000/api';
@@ -38,6 +41,80 @@ const VerifyEntry = () => {
     const [searched, setSearched] = useState(false);
     const [actionLoading, setActionLoading] = useState(null);
     const [billInfo, setBillInfo] = useState(null);
+    const [qrActive, setQrActive] = useState(false);
+    const qrRef = useRef(null);
+    const scannerRef = useRef(null);
+
+    // QR Scanner
+    const startQR = async () => {
+        setQrActive(true);
+        setTimeout(async () => {
+            try {
+                const scanner = new Html5Qrcode('qr-reader');
+                scannerRef.current = scanner;
+                await scanner.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    async (decodedText) => {
+                        // QR code scanned — stop scanner and search
+                        await scanner.stop();
+                        setQrActive(false);
+                        scannerRef.current = null;
+
+                        // The QR contains a booking ID — search for it
+                        setLoading(true);
+                        setSearched(true);
+                        setBillInfo(null);
+                        try {
+                            // Try to find booking by ID directly
+                            const res = await axios.get(`${API}/staff/bookings`, {
+                                params: { vehicleNumber: decodedText.trim() },
+                                withCredentials: true,
+                            });
+                            if (res.data.length > 0) {
+                                setBookings(res.data);
+                            } else {
+                                // Try as vehicle number
+                                const res2 = await axios.get(`${API}/staff/bookings`, {
+                                    params: { vehicleNumber: decodedText.trim().toUpperCase() },
+                                    withCredentials: true,
+                                });
+                                setBookings(res2.data);
+                            }
+                        } catch (err) {
+                            console.error('QR search error:', err);
+                            setBookings([]);
+                        } finally {
+                            setLoading(false);
+                        }
+                    },
+                    () => {} // Errors during scan are ignored (no QR in frame)
+                );
+            } catch (err) {
+                console.error('Camera error:', err);
+                setQrActive(false);
+                alert('Could not access camera. Make sure you allow camera permissions.');
+            }
+        }, 100);
+    };
+
+    const stopQR = async () => {
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+            } catch (e) {}
+            scannerRef.current = null;
+        }
+        setQrActive(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (scannerRef.current) {
+                scannerRef.current.stop().catch(() => {});
+            }
+        };
+    }, []);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -154,7 +231,39 @@ const VerifyEntry = () => {
                         <Search size={16} />
                         {loading ? 'Searching...' : 'Search'}
                     </button>
+
+                    <button
+                        type="button"
+                        onClick={qrActive ? stopQR : startQR}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
+                            qrActive
+                                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30'
+                                : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+                        }`}
+                    >
+                        {qrActive ? <CameraOff size={16} /> : <Camera size={16} />}
+                        {qrActive ? 'Stop' : 'QR Scan'}
+                    </button>
                 </form>
+
+                {/* QR Scanner Preview */}
+                <AnimatePresence>
+                    {qrActive && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4"
+                        >
+                            <div className="bg-black rounded-lg overflow-hidden border border-purple-500/30 mx-auto" style={{ maxWidth: 400 }}>
+                                <div id="qr-reader" style={{ width: '100%' }} />
+                            </div>
+                            <p className="text-center text-xs text-gray-500 mt-2">
+                                Point camera at the booking QR code
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
             {/* Bill Info Banner */}

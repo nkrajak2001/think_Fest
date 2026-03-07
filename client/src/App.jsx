@@ -8,10 +8,15 @@ import AdminDashboard from "./Pages/admin/AdminDashboard";
 import ManageSlot from "./Pages/admin/ManageSlot";
 import ManageUser from "./Pages/admin/ManageUser";
 import ManagePricing from "./Pages/admin/ManagePricing";
+import StaffDashboard from "./Pages/staff/StaffDashboard";
+import VerifyEntry from "./Pages/staff/VerifyEntry";
+import StaffBookings from "./Pages/staff/StaffBookings";
 import AuthProvider from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import AdminRoute from "./Components/AdminRoute";
 import AdminLayout from "./Components/AdminLayout";
+import StaffRoute from "./Components/StaffRoute";
+import StaffLayout from "./Components/StaffLayout";
 
 function App() {
   return (
@@ -41,6 +46,18 @@ function App() {
           <Route path="/admin/slots" element={<ManageSlot />} />
           <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/pricing" element={<ManagePricing />} />
+        </Route>
+
+        <Route
+          element={
+            <StaffRoute>
+              <StaffLayout />
+            </StaffRoute>
+          }
+        >
+          <Route path="/staff" element={<StaffDashboard />} />
+          <Route path="/staff/verify" element={<VerifyEntry />} />
+          <Route path="/staff/bookings" element={<StaffBookings />} />
         </Route>
       </Routes>
     </AuthProvider>

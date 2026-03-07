@@ -16,7 +16,7 @@ connectDB();
 const app = express();
 const port = process.env.PORT || 5000;
 
-const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').replace(/\/+$/, '');
+const FRONTEND_ORIGIN = (process.env.FRONTEND_ORIGIN || 'http://localhost:5174').replace(/\/+$/, '');
 
 app.use(
   cors({

@@ -5,6 +5,7 @@ import Overview from "./Overview";
 import Slots from "./Slots";
 import Bookings from "./Bookings";
 import Billing from "./Billing";
+import SlotMap from "./SlotMap";
 
 export default function Dashboard() {
   const [page, setPage] = useState("overview");
@@ -17,6 +18,8 @@ export default function Dashboard() {
         return <Bookings />;
       case "billing":
         return <Billing />;
+      case "slotmap":
+        return <SlotMap />;
       default:
         return <Overview />;
     }

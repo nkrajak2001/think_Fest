@@ -9,6 +9,7 @@ import {
   BadgeDollarSign,
   LogOut,
   Bot,
+  BarChart3,
 } from 'lucide-react';
 
 const links = [
@@ -16,6 +17,7 @@ const links = [
   { to: '/admin/slots', label: 'Manage Slots', icon: ParkingSquare },
   { to: '/admin/users', label: 'Manage Users', icon: Users },
   { to: '/admin/pricing', label: 'Pricing', icon: BadgeDollarSign },
+  { to: '/admin/insights', label: 'Insights', icon: BarChart3 },
   { to: '/admin/ai', label: 'AI Assistant', icon: Bot },
 ];
 

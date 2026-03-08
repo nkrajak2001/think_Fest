@@ -234,6 +234,146 @@ class AdminController {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }
   }
+
+  static async getInsights(req, res) {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const [revenueTrend, bookingsTrend, peakHours, slotUtilization, slotTypes] = await Promise.all([
+        // 1. Revenue per day (last 30 days)
+        Bill.aggregate([
+          { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+          {
+            $group: {
+              _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+              revenue: { $sum: '$totalAmount' },
+              collected: { $sum: { $cond: [{ $ne: ['$paidAt', null] }, '$totalAmount', 0] } },
+              bills: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 2. Bookings per day by status (last 30 days)
+        Booking.aggregate([
+          { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+          {
+            $group: {
+              _id: {
+                date: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                status: '$status',
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ]),
+
+        // 3. Peak hours (check-in hour distribution)
+        Booking.aggregate([
+          { $match: { checkInTime: { $ne: null } } },
+          {
+            $group: {
+              _id: { $hour: '$checkInTime' },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 4. Slot utilization (current status counts)
+        ParkingSlot.aggregate([
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]),
+
+        // 5. Slot type distribution
+        ParkingSlot.aggregate([
+          { $group: { _id: '$type', count: { $sum: 1 } } },
+        ]),
+      ]);
+
+      // Fill missing days for revenue trend
+      const revenueByDay = {};
+      revenueTrend.forEach((r) => { revenueByDay[r._id] = r; });
+
+      const filledRevenue = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        filledRevenue.push({
+          date: key,
+          revenue: revenueByDay[key]?.revenue || 0,
+          collected: revenueByDay[key]?.collected || 0,
+          bills: revenueByDay[key]?.bills || 0,
+        });
+      }
+
+      // Fill bookings trend by day
+      const bookingsByDay = {};
+      bookingsTrend.forEach((b) => {
+        if (!bookingsByDay[b._id.date]) bookingsByDay[b._id.date] = {};
+        bookingsByDay[b._id.date][b._id.status] = b.count;
+      });
+
+      const filledBookings = [];
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        const day = bookingsByDay[key] || {};
+        filledBookings.push({
+          date: key,
+          pending: day.pending || 0,
+          active: day.active || 0,
+          completed: day.completed || 0,
+          cancelled: day.cancelled || 0,
+          expired: day.expired || 0,
+        });
+      }
+
+      // Fill peak hours (0-23)
+      const hourMap = {};
+      peakHours.forEach((h) => { hourMap[h._id] = h.count; });
+      const filledHours = [];
+      for (let h = 0; h < 24; h++) {
+        filledHours.push({ hour: h, label: `${h.toString().padStart(2, '0')}:00`, count: hourMap[h] || 0 });
+      }
+
+      // Simple linear regression for 7-day revenue forecast
+      const recentDays = filledRevenue.slice(-14); // use last 14 days
+      const n = recentDays.length;
+      let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+      recentDays.forEach((d, i) => {
+        sumX += i;
+        sumY += d.revenue;
+        sumXY += i * d.revenue;
+        sumX2 += i * i;
+      });
+      const slope = n > 1 ? (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX) : 0;
+      const intercept = (sumY - slope * sumX) / n;
+
+      const forecast = [];
+      for (let i = 1; i <= 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const predicted = Math.max(0, Math.round(intercept + slope * (n + i - 1)));
+        forecast.push({ date: d.toISOString().split('T')[0], predicted });
+      }
+
+      return res.json({
+        revenueTrend: filledRevenue,
+        bookingsTrend: filledBookings,
+        peakHours: filledHours,
+        slotUtilization: slotUtilization.map((s) => ({ name: s._id, value: s.count })),
+        slotTypes: slotTypes.map((s) => ({ name: s._id, value: s.count })),
+        forecast,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
 }
 
 export default AdminController;

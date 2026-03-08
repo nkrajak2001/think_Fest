@@ -9,6 +9,7 @@ import ManageSlot from "./Pages/admin/ManageSlot";
 import ManageUser from "./Pages/admin/ManageUser";
 import ManagePricing from "./Pages/admin/ManagePricing";
 import AdminAIAssistant from "./Pages/admin/AdminAIAssistant";
+import AdminInsights from "./Pages/admin/AdminInsights";
 import StaffDashboard from "./Pages/staff/StaffDashboard";
 import VerifyEntry from "./Pages/staff/verifyEntry";
 import StaffBookings from "./Pages/staff/StaffBookings";
@@ -51,6 +52,7 @@ function App() {
           <Route path="/admin/slots" element={<ManageSlot />} />
           <Route path="/admin/users" element={<ManageUser />} />
           <Route path="/admin/pricing" element={<ManagePricing />} />
+          <Route path="/admin/insights" element={<AdminInsights />} />
           <Route path="/admin/ai" element={<AdminAIAssistant />} />
         </Route>
 

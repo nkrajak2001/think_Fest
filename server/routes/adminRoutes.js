@@ -18,6 +18,7 @@ router.get('/pricing', authMiddleware, RBAC.authorize('admin'), AdminController.
 
 router.get('/revenue', authMiddleware, RBAC.authorize('admin'), AdminController.getRevenue);
 router.get('/dashboard', authMiddleware, RBAC.authorize('admin'), AdminController.getDashboardStats);
+router.get('/insights', authMiddleware, RBAC.authorize('admin'), AdminController.getInsights);
 
 router.get('/users', authMiddleware, RBAC.authorize('admin'), AdminController.getAllUsers);
 router.patch('/users/:id/role', authMiddleware, RBAC.authorize('admin'), AdminController.updateUserRole);

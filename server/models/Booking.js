@@ -1,4 +1,3 @@
-/** @format */
 
 import mongoose from 'mongoose';
 
@@ -49,7 +48,6 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Auto set expiry = bookingTime + 15 min
 bookingSchema.pre('save', function () {
   if (!this.expiresAt) {
     this.expiresAt = new Date(this.bookingTime.getTime() + 15 * 60000);

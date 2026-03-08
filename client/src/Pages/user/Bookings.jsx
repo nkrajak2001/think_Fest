@@ -52,12 +52,10 @@ export default function Bookings() {
         return;
       }
 
-      // 1. Create order on server
       const { data } = await API.post("/payment/create-order", {
         bookingId: booking._id,
       });
 
-      // 2. Open Razorpay checkout
       const options = {
         key: data.keyId,
         amount: data.amount,
@@ -68,7 +66,6 @@ export default function Bookings() {
         theme: { color: "#22d3ee" }, // cyan-400
         handler: async (response) => {
           try {
-            // 3. Verify payment on server
             await API.post("/payment/verify", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -235,7 +232,7 @@ export default function Bookings() {
 
                 <div className="bg-white rounded-xl p-4 inline-block mb-4">
                   <QRCodeSVG
-                    value={booking.vehicleNumber || booking._id}
+                    value={JSON.stringify({ bookingId: booking._id, vehicleNumber: booking.vehicleNumber })}
                     size={200}
                     level="H"
                     includeMargin={false}

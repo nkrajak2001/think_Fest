@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home, ParkingCircle, ClipboardList, Receipt, Map, LogOut } from "lucide-react";
+import { Home, ParkingCircle, ClipboardList, Receipt, Map, LogOut, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -19,6 +19,7 @@ export default function Sidebar({ page, setPage }) {
     { id: "slots", label: "Browse Slots", icon: ParkingCircle },
     { id: "bookings", label: "My Bookings", icon: ClipboardList },
     { id: "billing", label: "Billing", icon: Receipt },
+    { id: "notifications", label: "Notifications", icon: Bell },
   ];
 
   return (
@@ -52,7 +53,6 @@ export default function Sidebar({ page, setPage }) {
 
       </div>
 
-      {/* User info & Logout */}
       <div className="border-t border-zinc-800 pt-4 mt-4">
         <div className="text-xs text-gray-500 mb-1">Signed in as</div>
         <div className="text-sm font-medium truncate mb-3">

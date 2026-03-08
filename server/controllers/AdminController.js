@@ -66,7 +66,6 @@ class AdminController {
     }
   }
 
-  // NEW: Put slot into maintenance mode
   static async setMaintenance(req, res) {
     try {
       const slot = await ParkingSlot.findById(req.params.id);

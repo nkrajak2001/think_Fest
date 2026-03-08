@@ -3,7 +3,9 @@ import { motion } from "framer-motion";
 import API from "../../services/api";
 import { toast } from "react-toastify";
 import { Car, Zap, Accessibility, Crown, ChevronDown } from "lucide-react";
-
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import BookingModal from "../../Components/BookingModal";
 const statusConfig = {
     available: {
         bg: "bg-emerald-500/20",
@@ -47,11 +49,13 @@ const typeIcons = {
 };
 
 export default function SlotMap({ onBookSlot }) {
+    const { user } = useContext(AuthContext);
     const [slots, setSlots] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedFloor, setSelectedFloor] = useState(null);
     const [hoveredSlot, setHoveredSlot] = useState(null);
-    const [bookingSlot, setBookingSlot] = useState(null);
+    const [selectedSlot, setSelectedSlot] = useState(null);
+    const [bookingLoading, setBookingLoading] = useState(false);
 
     useEffect(() => {
         loadSlots();
@@ -74,23 +78,30 @@ export default function SlotMap({ onBookSlot }) {
         }
     };
 
-    const handleBook = async (slotId) => {
+    const handleBookClick = (slot) => {
         if (onBookSlot) {
-            onBookSlot(slotId);
-            return;
+            onBookSlot(slot._id);
+        } else {
+            setSelectedSlot(slot);
         }
-        setBookingSlot(slotId);
+    };
+
+    const handleConfirmBooking = async (formData) => {
+        setBookingLoading(true);
         try {
             const res = await API.post("/bookings", {
-                slotId,
-                vehicleNumber: "TEMP123",
+                slotId: selectedSlot._id,
+                vehicleNumber: formData.vehicleNumber,
+                name: formData.name,
+                phone: formData.phone,
             });
             toast.success(res.data.message);
+            setSelectedSlot(null);
             await loadSlots();
         } catch (err) {
             toast.error(err.response?.data?.message || "Booking failed");
         } finally {
-            setBookingSlot(null);
+            setBookingLoading(false);
         }
     };
 
@@ -183,8 +194,8 @@ export default function SlotMap({ onBookSlot }) {
                                 key={floor}
                                 onClick={() => setSelectedFloor(floor)}
                                 className={`px-4 py-2.5 rounded-xl text-sm font-medium transition border ${selectedFloor === floor
-                                        ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/30"
-                                        : "bg-zinc-900 text-gray-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
+                                    ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/30"
+                                    : "bg-zinc-900 text-gray-400 border-zinc-800 hover:bg-zinc-800 hover:text-white"
                                     }`}
                             >
                                 <div>Floor {floor}</div>
@@ -268,12 +279,12 @@ export default function SlotMap({ onBookSlot }) {
                                                     animate={{ opacity: 1, y: 0 }}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleBook(slot._id);
+                                                        handleBookClick(slot);
                                                     }}
-                                                    disabled={bookingSlot === slot._id}
+                                                    disabled={selectedSlot?._id === slot._id}
                                                     className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-yellow-400 text-black text-[10px] font-bold px-3 py-1 rounded-lg shadow-lg whitespace-nowrap disabled:opacity-50"
                                                 >
-                                                    {bookingSlot === slot._id ? "..." : "Book Now"}
+                                                    {selectedSlot?._id === slot._id ? "..." : "Book Now"}
                                                 </motion.button>
                                             )}
                                         </motion.div>
@@ -293,6 +304,15 @@ export default function SlotMap({ onBookSlot }) {
                     </motion.div>
                 ))}
             </div>
+
+            <BookingModal
+                isOpen={!!selectedSlot}
+                onClose={() => setSelectedSlot(null)}
+                slot={selectedSlot}
+                user={user}
+                onConfirm={handleConfirmBooking}
+                loading={bookingLoading}
+            />
         </div>
     );
 }

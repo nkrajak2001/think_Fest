@@ -42,10 +42,10 @@ const VerifyEntry = () => {
     const [actionLoading, setActionLoading] = useState(null);
     const [billInfo, setBillInfo] = useState(null);
     const [qrActive, setQrActive] = useState(false);
+    const [qrResult, setQrResult] = useState(null); // { type: 'success'|'error', message }
     const qrRef = useRef(null);
     const scannerRef = useRef(null);
 
-    // QR Scanner
     const startQR = async () => {
         setQrActive(true);
         setTimeout(async () => {
@@ -56,31 +56,51 @@ const VerifyEntry = () => {
                     { facingMode: 'environment' },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText) => {
-                        // QR code scanned — stop scanner and search
                         await scanner.stop();
                         setQrActive(false);
                         scannerRef.current = null;
 
-                        // The QR contains a booking ID — search for it
                         setLoading(true);
                         setSearched(true);
                         setBillInfo(null);
+                        setQrResult(null);
+
                         try {
-                            // Try to find booking by ID directly
+                            let bookingId = null;
+                            let vehicle = decodedText.trim();
+
+                            try {
+                                const parsed = JSON.parse(decodedText);
+                                if (parsed.bookingId) bookingId = parsed.bookingId;
+                                if (parsed.vehicleNumber) vehicle = parsed.vehicleNumber;
+                            } catch (e) {
+                            }
+
+                            setSearchType('vehicleNumber');
+                            setSearchQuery(vehicle);
+
+                            if (bookingId) {
+                                try {
+                                    await axios.patch(
+                                        `${API}/staff/${bookingId}/checkin`,
+                                        {},
+                                        { withCredentials: true }
+                                    );
+                                    setQrResult({
+                                        type: 'success',
+                                        message: `✅ Check-in successful for ${vehicle.toUpperCase()}`,
+                                    });
+                                } catch (checkinErr) {
+                                    const msg = checkinErr.response?.data?.message || 'Check-in failed';
+                                    setQrResult({ type: 'error', message: `❌ ${msg}` });
+                                }
+                            }
+
                             const res = await axios.get(`${API}/staff/bookings`, {
-                                params: { vehicleNumber: decodedText.trim() },
+                                params: { vehicleNumber: vehicle.toUpperCase() },
                                 withCredentials: true,
                             });
-                            if (res.data.length > 0) {
-                                setBookings(res.data);
-                            } else {
-                                // Try as vehicle number
-                                const res2 = await axios.get(`${API}/staff/bookings`, {
-                                    params: { vehicleNumber: decodedText.trim().toUpperCase() },
-                                    withCredentials: true,
-                                });
-                                setBookings(res2.data);
-                            }
+                            setBookings(res.data);
                         } catch (err) {
                             console.error('QR search error:', err);
                             setBookings([]);
@@ -88,7 +108,7 @@ const VerifyEntry = () => {
                             setLoading(false);
                         }
                     },
-                    () => {} // Errors during scan are ignored (no QR in frame)
+                    () => { } // Errors during scan are ignored (no QR in frame)
                 );
             } catch (err) {
                 console.error('Camera error:', err);
@@ -102,7 +122,7 @@ const VerifyEntry = () => {
         if (scannerRef.current) {
             try {
                 await scannerRef.current.stop();
-            } catch (e) {}
+            } catch (e) { }
             scannerRef.current = null;
         }
         setQrActive(false);
@@ -111,7 +131,7 @@ const VerifyEntry = () => {
     useEffect(() => {
         return () => {
             if (scannerRef.current) {
-                scannerRef.current.stop().catch(() => {});
+                scannerRef.current.stop().catch(() => { });
             }
         };
     }, []);
@@ -235,11 +255,10 @@ const VerifyEntry = () => {
                     <button
                         type="button"
                         onClick={qrActive ? stopQR : startQR}
-                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-                            qrActive
-                                ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30'
-                                : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
-                        }`}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2 ${qrActive
+                            ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/30'
+                            : 'bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30'
+                            }`}
                     >
                         {qrActive ? <CameraOff size={16} /> : <Camera size={16} />}
                         {qrActive ? 'Stop' : 'QR Scan'}
@@ -265,6 +284,32 @@ const VerifyEntry = () => {
                     )}
                 </AnimatePresence>
             </motion.div>
+
+            {/* QR Auto Check-In Result Banner */}
+            <AnimatePresence>
+                {qrResult && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10, height: 0 }}
+                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                        exit={{ opacity: 0, y: -10, height: 0 }}
+                        className={`rounded-xl p-4 mb-6 flex items-center justify-between ${qrResult.type === 'success'
+                            ? 'bg-green-500/10 border border-green-500/20'
+                            : 'bg-red-500/10 border border-red-500/20'
+                            }`}
+                    >
+                        <span className={`font-medium ${qrResult.type === 'success' ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                            {qrResult.message}
+                        </span>
+                        <button
+                            onClick={() => setQrResult(null)}
+                            className="text-gray-500 hover:text-white transition ml-4"
+                        >
+                            <XCircle size={16} />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Bill Info Banner */}
             <AnimatePresence>

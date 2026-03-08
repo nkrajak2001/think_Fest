@@ -10,6 +10,7 @@ import staffRoutes from './routes/staffRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import { cleanupExpiredBookings } from './utils/bookingCleanup.js';
 dotenv.config();
 connectDB();
@@ -18,7 +19,6 @@ const app = express();
 const port = process.env.PORT || 5000;
 const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
 
-// Trust Render's reverse proxy so secure cookies work
 if (isProd) app.set('trust proxy', 1);
 
 const allowedOrigins = [
@@ -26,7 +26,6 @@ const allowedOrigins = [
   'http://localhost:5174',
 ];
 
-// Add production frontend origin from env var
 if (process.env.FRONTEND_ORIGIN) {
   allowedOrigins.push(process.env.FRONTEND_ORIGIN.replace(/\/+$/, ''));
 }
@@ -55,6 +54,7 @@ app.use('/api/staff', staffRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/', (req, res) => {
   res.send('Smart Campus Parking API');

@@ -3,10 +3,10 @@ import ParkingSlot from '../models/ParkingSlot.js';
 import Bill from '../models/Bill.js';
 import Pricing from '../models/Pricing.js';
 import User from '../models/User.js';
+import NotificationController from './NotificationController.js';
 
 class StaffController {
 
-  // NEW: Search bookings by vehicleNumber or slotId
   static async findBookings(req, res) {
     try {
       const { vehicleNumber, slotId, status } = req.query;
@@ -15,7 +15,6 @@ class StaffController {
       if (vehicleNumber) filter.vehicleNumber = vehicleNumber.toUpperCase();
       if (status) filter.status = status;
 
-      // If slotId given, find via slot
       if (slotId) {
         const slot = await ParkingSlot.findOne({ slotNumber: slotId.toUpperCase() });
         if (!slot) return res.status(404).json({ message: 'Slot not found' });
@@ -53,6 +52,13 @@ class StaffController {
       await booking.save();
 
       await ParkingSlot.findByIdAndUpdate(booking.slotId, { status: 'occupied' });
+
+      await NotificationController.create(
+        booking.userId, 'checkin',
+        'Checked In',
+        `You have been checked in for your parking slot. Your session is now active.`,
+        booking._id
+      );
 
       return res.json({ message: 'Check-in successful', booking });
     } catch (error) {
@@ -106,6 +112,13 @@ class StaffController {
       });
 
       await User.findByIdAndUpdate(booking.userId, { hasActiveBooking: false });
+
+      await NotificationController.create(
+        booking.userId, 'checkout',
+        'Checked Out — Bill Generated',
+        `Your parking session is complete. Bill: ₹${totalAmount} (${billableHours} hr${billableHours > 1 ? 's' : ''}).`,
+        booking._id
+      );
 
       return res.json({ message: 'Check-out successful', bill });
     } catch (error) {

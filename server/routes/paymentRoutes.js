@@ -7,13 +7,11 @@ import Booking from '../models/Booking.js';
 
 const router = express.Router();
 
-// Demo Razorpay credentials (use test keys in production env)
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_demo1234567890',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'demo_secret_1234567890abcdef',
 });
 
-// POST /api/payment/create-order — Create Razorpay order
 router.post('/create-order', authMiddleware, async (req, res) => {
   try {
     const { bookingId } = req.body;
@@ -27,7 +25,7 @@ router.post('/create-order', authMiddleware, async (req, res) => {
     if (!bill) return res.status(404).json({ message: 'No bill found for this booking' });
     if (bill.paidAt) return res.status(400).json({ message: 'Bill already paid' });
 
-    const amountInPaise = Math.round(bill.totalAmount * 100); // Razorpay uses paise
+    const amountInPaise = Math.round(bill.totalAmount * 100);
 
     const order = await razorpay.orders.create({
       amount: amountInPaise,
@@ -57,7 +55,6 @@ router.post('/create-order', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/payment/verify — Verify payment signature and mark bill paid
 router.post('/verify', authMiddleware, async (req, res) => {
   try {
     const {
@@ -69,7 +66,6 @@ router.post('/verify', authMiddleware, async (req, res) => {
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET || 'demo_secret_1234567890abcdef';
 
-    // Verify signature
     const body = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSignature = crypto
       .createHmac('sha256', keySecret)
@@ -80,7 +76,6 @@ router.post('/verify', authMiddleware, async (req, res) => {
       return res.status(400).json({ message: 'Payment verification failed — invalid signature' });
     }
 
-    // Mark bill as paid
     const booking = await Booking.findById(bookingId).populate('billId');
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
 

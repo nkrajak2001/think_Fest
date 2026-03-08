@@ -6,7 +6,6 @@ import { validateSlot, validatePricing } from '../middleware/validateMiddleware.
 
 const router = express.Router();
 
-// Slot management
 router.post('/slots', authMiddleware, RBAC.authorize('admin'), validateSlot, AdminController.createSlot);
 router.put('/slots/:id', authMiddleware, RBAC.authorize('admin'), AdminController.updateSlot);
 router.delete('/slots/:id', authMiddleware, RBAC.authorize('admin'), AdminController.deleteSlot);
@@ -14,19 +13,15 @@ router.get('/slots', authMiddleware, RBAC.authorize('admin'), AdminController.ge
 router.patch('/slots/:id/maintenance', authMiddleware, RBAC.authorize('admin'), AdminController.setMaintenance);
 router.patch('/slots/:id/activate', authMiddleware, RBAC.authorize('admin'), AdminController.activateSlot);
 
-// Pricing
 router.post('/pricing', authMiddleware, RBAC.authorize('admin'), validatePricing, AdminController.setPricing);
 router.get('/pricing', authMiddleware, RBAC.authorize('admin'), AdminController.getPricing);
 
-// Revenue & dashboard
 router.get('/revenue', authMiddleware, RBAC.authorize('admin'), AdminController.getRevenue);
 router.get('/dashboard', authMiddleware, RBAC.authorize('admin'), AdminController.getDashboardStats);
 
-// User management
 router.get('/users', authMiddleware, RBAC.authorize('admin'), AdminController.getAllUsers);
 router.patch('/users/:id/role', authMiddleware, RBAC.authorize('admin'), AdminController.updateUserRole);
 
-// Bill management
 router.patch('/bills/:id/confirm-payment', authMiddleware, RBAC.authorize('admin', 'staff'), AdminController.confirmPayment);
 
 export default router;

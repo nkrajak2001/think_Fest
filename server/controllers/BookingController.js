@@ -2,12 +2,13 @@ import Booking from '../models/Booking.js';
 import ParkingSlot from '../models/ParkingSlot.js';
 import User from '../models/User.js';
 import Bill from '../models/Bill.js';
+import NotificationController from './NotificationController.js';
 
 class BookingController {
   static async bookSlot(req, res) {
     try {
       const userId = req.user.id;
-      const { slotId, vehicleNumber } = req.body;
+      const { slotId, vehicleNumber, name, phone } = req.body;
 
       const user = await User.findById(userId);
       if (user.hasActiveBooking) {
@@ -22,6 +23,10 @@ class BookingController {
         return res.status(400).json({ message: 'Slot is not available' });
       }
 
+      if (name) user.name = name;
+      if (phone) user.phone = phone;
+      if (vehicleNumber) user.vehicleNumber = vehicleNumber;
+
       const booking = await Booking.create({
         userId,
         slotId,
@@ -35,6 +40,13 @@ class BookingController {
 
       user.hasActiveBooking = true;
       await user.save();
+
+      await NotificationController.create(
+        userId, 'booking',
+        'Booking Confirmed',
+        `Your slot ${slot.slotNumber} has been booked. Please check in within 15 minutes.`,
+        booking._id
+      );
 
       return res.status(201).json({ message: 'Slot booked successfully', booking });
     } catch (error) {
@@ -69,13 +81,19 @@ class BookingController {
 
       await User.findByIdAndUpdate(userId, { hasActiveBooking: false });
 
+      await NotificationController.create(
+        userId, 'cancellation',
+        'Booking Cancelled',
+        'Your booking has been cancelled successfully.',
+        bookingId
+      );
+
       return res.json({ message: 'Booking cancelled successfully' });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });
     }
   }
 
-  // NEW: Mark a bill as paid
   static async payBill(req, res) {
     try {
       const userId = req.user.id;
@@ -105,6 +123,13 @@ class BookingController {
 
       bill.paidAt = new Date();
       await bill.save();
+
+      await NotificationController.create(
+        userId, 'payment',
+        'Payment Successful',
+        `Your payment of ₹${bill.totalAmount} has been received.`,
+        bookingId
+      );
 
       return res.json({ message: 'Bill paid successfully', bill });
     } catch (error) {

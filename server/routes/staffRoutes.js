@@ -13,7 +13,6 @@ router.get('/billing', authMiddleware, RBAC.authorize('staff', 'admin'), StaffCo
 router.patch('/:id/checkin', authMiddleware, RBAC.authorize('staff', 'admin'), StaffController.checkIn);
 router.patch('/:id/checkout', authMiddleware, RBAC.authorize('staff', 'admin'), StaffController.checkOut);
 
-// Slot maintenance (staff can toggle)
 router.get('/slots', authMiddleware, RBAC.authorize('staff', 'admin'), AdminController.getAllSlots);
 router.patch('/slots/:id/maintenance', authMiddleware, RBAC.authorize('staff', 'admin'), AdminController.setMaintenance);
 router.patch('/slots/:id/activate', authMiddleware, RBAC.authorize('staff', 'admin'), AdminController.activateSlot);

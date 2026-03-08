@@ -3,11 +3,15 @@ import API from "../../services/api";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { Car, Zap, ParkingCircle } from "lucide-react";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import BookingModal from "../../Components/BookingModal";
 
 export default function Slots() {
-
+  const { user } = useContext(AuthContext);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   useEffect(() => {
     loadSlots();
@@ -22,26 +26,21 @@ export default function Slots() {
     }
   };
 
-  const bookSlot = async (id) => {
+  const handleConfirmBooking = async (formData) => {
     try {
-
       setLoading(true);
-
       const res = await API.post("/bookings", {
-        slotId: id,
-        vehicleNumber: "TEMP123"
+        slotId: selectedSlot._id,
+        vehicleNumber: formData.vehicleNumber,
+        name: formData.name,
+        phone: formData.phone,
       });
-
       toast.success(res.data.message);
-
+      setSelectedSlot(null);
       loadSlots();
-
     } catch (err) {
-
       console.error(err.response?.data);
-
       toast.error(err.response?.data?.message || "Booking failed");
-
     } finally {
       setLoading(false);
     }
@@ -87,11 +86,10 @@ export default function Slots() {
             </div>
 
             <div
-              className={`text-xs mb-4 font-semibold ${
-                slot.status === "available"
+              className={`text-xs mb-4 font-semibold ${slot.status === "available"
                   ? "text-green-400"
                   : "text-red-400"
-              }`}
+                }`}
             >
               {slot.status}
             </div>
@@ -101,7 +99,7 @@ export default function Slots() {
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 disabled={loading}
-                onClick={() => bookSlot(slot._id)}
+                onClick={() => setSelectedSlot(slot)}
                 className="bg-yellow-400 text-black px-4 py-1 rounded font-semibold hover:bg-yellow-300"
               >
                 Book
@@ -124,6 +122,14 @@ export default function Slots() {
 
       </div>
 
+      <BookingModal
+        isOpen={!!selectedSlot}
+        onClose={() => setSelectedSlot(null)}
+        slot={selectedSlot}
+        user={user}
+        onConfirm={handleConfirmBooking}
+        loading={loading}
+      />
     </div>
   );
 }

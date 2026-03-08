@@ -28,8 +28,8 @@ const loadRazorpayScript = () =>
 const StatusBadge = ({ paid }) => (
   <span
     className={`px-2.5 py-1 rounded-full text-xs font-semibold ${paid
-        ? "bg-green-400/10 text-green-400"
-        : "bg-yellow-400/10 text-yellow-400"
+      ? "bg-green-400/10 text-green-400"
+      : "bg-yellow-400/10 text-yellow-400"
       }`}
   >
     {paid ? "Paid" : "Unpaid"}
@@ -63,69 +63,56 @@ export default function Billing() {
     }
   };
 
-  // const handlePay = async (bookingId) => {
-  //   setPayingId(bookingId);
-  //   try {
-  //     await API.patch(`/bookings/${bookingId}/pay`);
-  //     toast.success("Payment successful!");
-  //     await loadBillingData();
-  //   } catch (err) {
-  //     toast.error(err.response?.data?.message || "Payment failed");
-  //   } finally {
-  //     setPayingId(null);
-  //   }
-  // };
-
-    const handlePay = async (booking) => {
-      setPayLoading(booking._id);
-      try {
-        const scriptLoaded = await loadRazorpayScript();
-        if (!scriptLoaded) {
-          toast.error("Razorpay SDK failed to load. Check your internet connection.");
-          return;
-        }
-  
-        const { data } = await API.post("/payment/create-order", {
-          bookingId: booking._id,
-        });
-  
-        const options = {
-          key: data.keyId,
-          amount: data.amount,
-          currency: data.currency,
-          name: "SmartPark Campus",
-          description: `Parking Bill — Slot ${booking.slotId?.slotNumber}`,
-          order_id: data.orderId,
-          theme: { color: "#22d3ee" }, 
-          handler: async (response) => {
-            try {
-              await API.post("/payment/verify", {
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                bookingId: booking._id,
-              });
-              toast.success("Payment successful! 🎉");
-              loadBookings();
-            } catch (err) {
-              toast.error("Payment verification failed. Contact support.");
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              toast.info("Payment cancelled");
-            },
-          },
-        };
-  
-        const rzp = new window.Razorpay(options);
-        rzp.open();
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Payment failed to initiate");
-      } finally {
-        setPayLoading(null);
+  const handlePay = async (booking) => {
+    setPayLoading(booking._id);
+    try {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        toast.error("Razorpay SDK failed to load. Check your internet connection.");
+        return;
       }
-    };
+
+      const { data } = await API.post("/payment/create-order", {
+        bookingId: booking._id,
+      });
+
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: "SmartPark Campus",
+        description: `Parking Bill — Slot ${booking.slotId?.slotNumber}`,
+        order_id: data.orderId,
+        theme: { color: "#22d3ee" },
+        handler: async (response) => {
+          try {
+            await API.post("/payment/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            });
+            toast.success("Payment successful! 🎉");
+            loadBookings();
+          } catch (err) {
+            toast.error("Payment verification failed. Contact support.");
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            toast.info("Payment cancelled");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Payment failed to initiate");
+    } finally {
+      setPayLoading(null);
+    }
+  };
 
   const filteredBookings = bookings.filter((b) => {
     if (filter === "unpaid") return !b.billId?.paidAt;
@@ -218,8 +205,8 @@ export default function Billing() {
             key={tab.key}
             onClick={() => setFilter(tab.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filter === tab.key
-                ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/30"
-                : "bg-zinc-900 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:text-white"
+              ? "bg-yellow-400/10 text-yellow-400 border border-yellow-400/30"
+              : "bg-zinc-900 text-gray-400 border border-zinc-800 hover:bg-zinc-800 hover:text-white"
               }`}
           >
             {tab.label}

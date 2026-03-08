@@ -16,13 +16,20 @@ connectDB();
 
 const app = express();
 const port = process.env.PORT || 5000;
+const isProd = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
+// Trust Render's reverse proxy so secure cookies work
+if (isProd) app.set('trust proxy', 1);
 
 const allowedOrigins = [
-  (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').replace(/\/+$/, ''),
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://think-fest-1.onrender.com',
 ];
+
+// Add production frontend origin from env var
+if (process.env.FRONTEND_ORIGIN) {
+  allowedOrigins.push(process.env.FRONTEND_ORIGIN.replace(/\/+$/, ''));
+}
 
 app.use(
   cors({

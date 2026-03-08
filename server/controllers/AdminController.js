@@ -3,6 +3,7 @@ import Pricing from '../models/Pricing.js';
 import Bill from '../models/Bill.js';
 import Booking from '../models/Booking.js';
 import User from '../models/User.js';
+import StaffActivity from '../models/StaffActivity.js';
 
 class AdminController {
   static async createSlot(req, res) {
@@ -360,6 +361,74 @@ class AdminController {
         slotUtilization: slotUtilization.map((s) => ({ name: s._id, value: s.count })),
         slotTypes: slotTypes.map((s) => ({ name: s._id, value: s.count })),
         forecast,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+  }
+
+  static async getStaffMonitor(req, res) {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const [staffUsers, todayActivity, allActivity] = await Promise.all([
+        User.find({ role: 'staff' }).select('name email createdAt'),
+
+        StaffActivity.find({ createdAt: { $gte: today } })
+          .populate('staffId', 'name email')
+          .populate('userId', 'name email')
+          .populate('slotId', 'slotNumber type floor section')
+          .sort({ createdAt: -1 }),
+
+        StaffActivity.aggregate([
+          {
+            $group: {
+              _id: '$staffId',
+              totalActions: { $sum: 1 },
+              totalCheckins: { $sum: { $cond: [{ $eq: ['$action', 'checkin'] }, 1, 0] } },
+              totalCheckouts: { $sum: { $cond: [{ $eq: ['$action', 'checkout'] }, 1, 0] } },
+              lastActivity: { $max: '$createdAt' },
+            },
+          },
+        ]),
+      ]);
+
+      const staffStatsMap = {};
+      allActivity.forEach((s) => {
+        staffStatsMap[s._id.toString()] = s;
+      });
+
+      const todayStaffIds = new Set(
+        todayActivity.map((a) => a.staffId?._id?.toString())
+      );
+
+      const staffList = staffUsers.map((s) => {
+        const stats = staffStatsMap[s._id.toString()] || {};
+        return {
+          _id: s._id,
+          name: s.name,
+          email: s.email,
+          onDuty: todayStaffIds.has(s._id.toString()),
+          todayActions: todayActivity.filter(
+            (a) => a.staffId?._id?.toString() === s._id.toString()
+          ).length,
+          totalActions: stats.totalActions || 0,
+          totalCheckins: stats.totalCheckins || 0,
+          totalCheckouts: stats.totalCheckouts || 0,
+          lastActivity: stats.lastActivity || null,
+        };
+      });
+
+      return res.json({
+        staffList,
+        todayActivity,
+        summary: {
+          totalStaff: staffUsers.length,
+          onDuty: todayStaffIds.size,
+          todayCheckins: todayActivity.filter((a) => a.action === 'checkin').length,
+          todayCheckouts: todayActivity.filter((a) => a.action === 'checkout').length,
+        },
       });
     } catch (error) {
       return res.status(500).json({ message: 'Server Error', error: error.message });

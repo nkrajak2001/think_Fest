@@ -10,6 +10,7 @@ import {
   LogOut,
   Bot,
   BarChart3,
+  Activity,
 } from 'lucide-react';
 
 const links = [
@@ -18,6 +19,7 @@ const links = [
   { to: '/admin/users', label: 'Manage Users', icon: Users },
   { to: '/admin/pricing', label: 'Pricing', icon: BadgeDollarSign },
   { to: '/admin/insights', label: 'Insights', icon: BarChart3 },
+  { to: '/admin/monitor', label: 'Staff Monitor', icon: Activity },
   { to: '/admin/ai', label: 'AI Assistant', icon: Bot },
 ];
 
@@ -52,10 +54,9 @@ const AdminLayout = () => {
               to={link.to}
               end={link.to === '/admin'}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
-                    ? 'bg-yellow-400/10 text-yellow-400'
-                    : 'text-gray-400 hover:bg-zinc-800 hover:text-white'
+                `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
+                  ? 'bg-yellow-400/10 text-yellow-400'
+                  : 'text-gray-400 hover:bg-zinc-800 hover:text-white'
                 }`
               }
             >

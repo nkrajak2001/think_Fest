@@ -4,6 +4,7 @@ import Bill from '../models/Bill.js';
 import Pricing from '../models/Pricing.js';
 import User from '../models/User.js';
 import NotificationController from './NotificationController.js';
+import StaffActivity from '../models/StaffActivity.js';
 
 class StaffController {
 
@@ -59,6 +60,15 @@ class StaffController {
         `You have been checked in for your parking slot. Your session is now active.`,
         booking._id
       );
+
+      await StaffActivity.create({
+        staffId: req.user.id,
+        action: 'checkin',
+        bookingId: booking._id,
+        userId: booking.userId,
+        vehicleNumber: booking.vehicleNumber,
+        slotId: booking.slotId,
+      });
 
       return res.json({ message: 'Check-in successful', booking });
     } catch (error) {
@@ -119,6 +129,15 @@ class StaffController {
         `Your parking session is complete. Bill: ₹${totalAmount} (${billableHours} hr${billableHours > 1 ? 's' : ''}).`,
         booking._id
       );
+
+      await StaffActivity.create({
+        staffId: req.user.id,
+        action: 'checkout',
+        bookingId: booking._id,
+        userId: booking.userId,
+        vehicleNumber: booking.vehicleNumber,
+        slotId: booking.slotId._id,
+      });
 
       return res.json({ message: 'Check-out successful', bill });
     } catch (error) {

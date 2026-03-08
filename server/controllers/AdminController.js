@@ -241,7 +241,6 @@ class AdminController {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const [revenueTrend, bookingsTrend, peakHours, slotUtilization, slotTypes] = await Promise.all([
-        // 1. Revenue per day (last 30 days)
         Bill.aggregate([
           { $match: { createdAt: { $gte: thirtyDaysAgo } } },
           {
@@ -255,7 +254,6 @@ class AdminController {
           { $sort: { _id: 1 } },
         ]),
 
-        // 2. Bookings per day by status (last 30 days)
         Booking.aggregate([
           { $match: { createdAt: { $gte: thirtyDaysAgo } } },
           {
@@ -270,7 +268,6 @@ class AdminController {
           { $sort: { '_id.date': 1 } },
         ]),
 
-        // 3. Peak hours (check-in hour distribution)
         Booking.aggregate([
           { $match: { checkInTime: { $ne: null } } },
           {
@@ -282,18 +279,15 @@ class AdminController {
           { $sort: { _id: 1 } },
         ]),
 
-        // 4. Slot utilization (current status counts)
         ParkingSlot.aggregate([
           { $group: { _id: '$status', count: { $sum: 1 } } },
         ]),
 
-        // 5. Slot type distribution
         ParkingSlot.aggregate([
           { $group: { _id: '$type', count: { $sum: 1 } } },
         ]),
       ]);
 
-      // Fill missing days for revenue trend
       const revenueByDay = {};
       revenueTrend.forEach((r) => { revenueByDay[r._id] = r; });
 
@@ -310,7 +304,6 @@ class AdminController {
         });
       }
 
-      // Fill bookings trend by day
       const bookingsByDay = {};
       bookingsTrend.forEach((b) => {
         if (!bookingsByDay[b._id.date]) bookingsByDay[b._id.date] = {};
@@ -333,7 +326,6 @@ class AdminController {
         });
       }
 
-      // Fill peak hours (0-23)
       const hourMap = {};
       peakHours.forEach((h) => { hourMap[h._id] = h.count; });
       const filledHours = [];
@@ -341,8 +333,7 @@ class AdminController {
         filledHours.push({ hour: h, label: `${h.toString().padStart(2, '0')}:00`, count: hourMap[h] || 0 });
       }
 
-      // Simple linear regression for 7-day revenue forecast
-      const recentDays = filledRevenue.slice(-14); // use last 14 days
+      const recentDays = filledRevenue.slice(-14);
       const n = recentDays.length;
       let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
       recentDays.forEach((d, i) => {

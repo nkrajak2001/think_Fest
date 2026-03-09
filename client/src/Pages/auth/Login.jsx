@@ -86,7 +86,7 @@ const Login = () => {
 
         <div className='flex gap-12 relative z-10'>
           {[
-            { value: '248', label: 'Total Slots' },
+            { value: '50', label: 'Total Slots' },
             { value: '3', label: 'Role Types' },
             { value: '₹1/hr', label: 'Min Billing' },
           ].map((stat, i) => (

@@ -15,7 +15,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 
-/* ───────────────────── Animated Counter ───────────────────── */
 function AnimatedStat({ value, label }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
@@ -33,7 +32,6 @@ function AnimatedStat({ value, label }) {
   );
 }
 
-/* ───────────────────── Feature Card ───────────────────── */
 function FeatureCard({ icon: Icon, title, desc, delay }) {
   return (
     <motion.div
@@ -52,7 +50,6 @@ function FeatureCard({ icon: Icon, title, desc, delay }) {
   );
 }
 
-/* ───────────────────── Step Card ───────────────────── */
 function StepCard({ num, icon: Icon, title, desc, delay }) {
   return (
     <motion.div
@@ -300,7 +297,7 @@ export default function LandingPage() {
           <AnimatedStat value="500+" label="Parking Slots" />
           <AnimatedStat value="3" label="User Roles" />
           <AnimatedStat value="24/7" label="Monitoring" />
-          <AnimatedStat value="₹1/hr" label="Starting Rate" />
+          <AnimatedStat value="₹10/hr" label="Starting Rate" />
         </div>
       </section>
 
